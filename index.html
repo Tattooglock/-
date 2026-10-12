@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="uk"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Флора CRM</title>
+<meta name="apple-mobile-web-app-title" content="Flory">
+<title>Flory</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
 :root{--bg:#f6f4ec;--card:#fff;--g:#7a9a7e;--gd:#4f6f55;--l:#e3ebe0;--t:#2d3a2f;--m:#8a968c;--r:#c97b6b}
@@ -11,49 +12,78 @@ nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-t
 nav button{flex:1;border:0;background:0;padding:10px 0;color:var(--m);font-size:11px}nav button b{display:block;font-size:20px;font-weight:400}nav .on{color:var(--gd);font-weight:700}
 .c{background:var(--card);border:1px solid var(--l);border-radius:16px;padding:12px;margin:8px 0}.row{display:flex;gap:8px;align-items:center;justify-content:space-between}
 .btn{border:0;background:var(--g);color:#fff;border-radius:12px;padding:10px 14px;font-size:14px}.btn.s{background:var(--l);color:var(--gd);padding:6px 10px;font-size:12px}.btn.d{background:#f3dcd6;color:var(--r)}
-input,select,textarea{width:100%;padding:10px;border:1px solid var(--l);border-radius:10px;font-size:16px;background:#fff;margin:3px 0 8px}label{font-size:12px;color:var(--m)}
+input,select,textarea{width:100%;min-width:0;min-height:44px;padding:10px;border:1px solid var(--l);border-radius:10px;font-size:16px;background:#fff;margin:3px 0 8px}label{font-size:12px;color:var(--m)}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.chip{border:1px solid var(--l);background:#fff;border-radius:20px;padding:5px 11px;font-size:12px;color:var(--m)}.chip.on{background:var(--g);color:#fff}
 .tag{font-size:11px;background:var(--l);color:var(--gd);border-radius:10px;padding:2px 8px}.warn{background:#fbeee9;border-color:#f0cfc5}
 .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}.day{padding:9px 0;border-radius:10px;font-size:14px;position:relative}.day.t{border:1px solid var(--g)}.day.sel{background:var(--g);color:#fff}.day i{position:absolute;bottom:1px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--r);font-style:normal}
 .kp{display:grid;grid-template-columns:1fr 1fr;gap:8px}.kp .c b{font-size:20px;color:var(--gd);display:block;margin-top:4px}
 #modal{position:fixed;inset:0;background:#0006;display:none;z-index:9;overflow:auto}#modal>div{background:var(--bg);max-width:640px;margin:20px auto;border-radius:18px;padding:16px}
-.m{color:var(--m);font-size:13px}
+.m{color:var(--m);font-size:13px}.fg{display:grid;grid-template-columns:repeat(6,1fr);gap:0 8px}
+.lg{display:flex;gap:4px}.lg button{border:1px solid var(--l);background:#fff;color:var(--m);border-radius:10px;padding:6px 11px;font-size:12px}.lg .on{background:var(--g);color:#fff;border-color:var(--g)}
+.opt{padding:10px;border:1px solid var(--l);border-radius:10px;background:#fff;margin-bottom:4px;font-size:15px}
 </style></head><body>
 <div class="w" id="app"></div><div id="modal"><div id="mb"></div></div>
 <script>
 const URL_='https://rbbbkiebhjovgrpzbqmz.supabase.co',KEY='sb_publishable_SmX8c7q4FQIpOly9rLe8OA_7ioeOQpM';
 const sb=supabase.createClient(URL_,KEY);
-const ST=['нове','підтверджене','в роботі','готове','доставлене','скасоване'];
+let lang='uk';try{lang=localStorage.getItem('lang')||'uk'}catch(_){}
+document.documentElement.lang=lang;
+const PL={'помічник флориста':'pomocnik florysty','вийти':'wyloguj','Вхід':'Logowanie','Пароль':'Hasło','Увійти':'Zaloguj','Невірний email чи пароль':'Nieprawidłowy email lub hasło',
+'Замовлення':'Zamówienia','Календар':'Kalendarz','Клієнти':'Klienci','Склад':'Magazyn','Фінанси':'Finanse','🔍 Пошук…':'🔍 Szukaj…','+ Нове':'+ Nowe',
+'нове':'nowe','підтверджене':'potwierdzone','в роботі':'w realizacji','готове':'gotowe','доставлене':'dostarczone','скасоване':'anulowane','всі':'wszystkie',
+'Замовлень немає':'Brak zamówień','борг':'dług','не оплачено':'nieopłacone','частково оплачено':'częściowo opłacone','оплачено':'opłacone','повернення':'zwrot',
+'Ред.':'Edyt.','Копіювати':'Kopiuj','Доставок немає':'Brak dostaw','Найближчі доставки':'Najbliższe dostawy','Немає':'Brak',
+'Пн':'Pn','Вт':'Wt','Ср':'Śr','Чт':'Cz','Пт':'Pt','Сб':'Sb','Нд':'Nd',
+'Замовлень':'Zamówień','Сума покупок':'Suma zakupów','+ Замовлення':'+ Zamówienie','Повторити останнє':'Powtórz ostatnie','У клієнта ще немає замовлень':'Klient nie ma jeszcze zamówień',
+'сьогодні':'dzisiaj','через':'za','дн.':'dni','⚠️ Потрібна закупівля':'⚠️ Do zamówienia','мін.':'min.','🥀 Використати першочергово':'🥀 Zużyć w pierwszej kolejności','до':'do','(прострочено)':'(przeterminowane)',
+'Залишок':'Stan','од.':'jedn.','отримано':'przyjęto','свіжі до':'świeże do','+ Надходження':'+ Przyjęcie','Пошкодження':'Uszkodzenie','Списання':'Rozchód','Інвентар.':'Inwent.',
+'Фактичний залишок:':'Stan faktyczny:','Кількість':'Ilość','Закупівельна ціна за од. (залиш порожнім — без змін):':'Cena zakupu za jedn. (puste = bez zmian):','Свіжі до (РРРР-ММ-ДД, можна пропустити):':'Świeże do (RRRR-MM-DD, można pominąć):',
+'💸 Дохід':'💸 Przychód','доставлених':'dostarczonych','✨ Середній чек':'✨ Średni rachunek','🌸 Валовий прибуток':'🌸 Zysk brutto','сума − собівартість':'kwota − koszt własny','🧾 Чистий':'🧾 Zysk netto','після витрат і втрат':'po kosztach i stratach','🥀 Втрати':'🥀 Straty','⏳ Не сплачено':'⏳ Nieopłacone',
+'Витрати':'Koszty','+ Витрата':'+ Koszt','Витрат ще немає':'Brak kosztów','Редагувати':'Edytuj','Нове':'Nowe','Зберегти':'Zapisz','Скасувати':'Anuluj','Обери клієнта':'Wybierz klienta','Видалити?':'Usunąć?',
+"🔍 Ім'я чи телефон клієнта":'🔍 Imię lub telefon klienta','Нічого не знайдено':'Nic nie znaleziono',
+"Ім'я":'Imię','Телефон':'Telefon','Адреса доставки':'Adres dostawy','Джерело':'Źródło','Важливі дати (напр. 14.03 мама)':'Ważne daty (np. 14.03 mama)','Нотатки':'Notatki',
+'Сайт':'Strona','Рекомендація':'Polecenie','Реклама':'Reklama','Інше':'Inne',
+'Клієнт':'Klient','Статус':'Status','Дата доставки':'Data dostawy','Інтервал з':'Przedział od','Адреса':'Adres','Склад букета (Троянда:11, Піон:5)':'Skład bukietu (Róża:11, Piwonia:5)','Пакування':'Opakowanie','Листівка':'Kartka','Побажання':'Życzenia',
+'Сума':'Kwota','Вартість доставки':'Koszt dostawy','Спосіб оплати':'Metoda płatności','Статус оплати':'Status płatności','Сплачено':'Zapłacono','Коментар':'Komentarz',
+'готівка':'gotówka','картка':'karta','переказ':'przelew','онлайн':'online',
+'Назва (вид)':'Nazwa (rodzaj)','Категорія':'Kategoria','Сорт':'Odmiana','Колір':'Kolor','Довжина стебла, см':'Długość łodygi, cm','Одиниця':'Jednostka','Мінімальний залишок':'Minimalny stan','Закупівельна ціна за од.':'Cena zakupu za jedn.','Дата отримання партії':'Data przyjęcia partii','Свіжий до':'Świeże do',
+'Квіти':'Kwiaty','Зелень':'Zieleń','Стрічки':'Wstążki','Вази':'Wazony','Листівки':'Kartki','Тип':'Typ','Дата':'Data','Примітка':'Uwaga',
+'доставка':'dostawa','пакування':'opakowanie','реклама':'reklama','оренда':'wynajem','інше':'inne','шт':'szt','гілка':'gałąź','м':'m'};
+const T=s=>(lang=='pl'&&PL[s]!==undefined)?PL[s]:s;
 const $=s=>document.querySelector(s),e=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const money=n=>Math.round(+n||0).toLocaleString('uk')+' ₴';
+const money=n=>(+n||0).toLocaleString(lang,{maximumFractionDigits:2})+' zł';
 const iso=d=>d.toISOString().slice(0,10);
+const ST=['нове','підтверджене','в роботі','готове','доставлене','скасоване'];
 const F={
-clients:[['name','Ім\'я'],['phone','Телефон','tel'],['instagram','Instagram'],['address','Адреса доставки'],['source','Джерело','sel:Instagram,Сайт,Рекомендація,Реклама,Інше'],['dates','Важливі дати (напр. 14.03 мама)','area'],['notes','Нотатки','area']],
+clients:[['name',"Ім'я"],['phone','Телефон','tel'],['instagram','Instagram'],['address','Адреса доставки'],['source','Джерело','sel:Instagram,Сайт,Рекомендація,Реклама,Інше'],['dates','Важливі дати (напр. 14.03 мама)','area'],['notes','Нотатки','area']],
 orders:[['client_id','Клієнт','client'],['status','Статус','sel:'+ST],['d','Дата доставки','date'],['t_from','Інтервал з','time'],['t_to','до','time'],['address','Адреса'],['items','Склад букета (Троянда:11, Піон:5)','area'],['packaging','Пакування'],['card','Листівка'],['wishes','Побажання','area'],['total','Сума','number'],['delivery_cost','Вартість доставки','number'],['pay_method','Спосіб оплати','sel:готівка,картка,переказ,онлайн'],['pay_status','Статус оплати','sel:не оплачено,частково оплачено,оплачено,повернення'],['paid','Сплачено','number'],['comment','Коментар','area']],
 stock:[['name','Назва (вид)'],['category','Категорія','sel:Квіти,Зелень,Пакування,Стрічки,Вази,Листівки,Інше'],['variety','Сорт'],['color','Колір'],['stem_cm','Довжина стебла, см','number'],['unit','Одиниця'],['qty','Залишок','number'],['min_qty','Мінімальний залишок','number'],['price','Закупівельна ціна за од.','number'],['received','Дата отримання партії','date'],['expires','Свіжий до','date']],
 expenses:[['kind','Тип','sel:доставка,пакування,реклама,оренда,інше'],['amount','Сума','number'],['d','Дата','date'],['note','Примітка']]};
-let S={clients:[],orders:[],stock:[],stock_log:[],expenses:[]},tab='orders',flt='всі',q='',cur=new Date(),selDay=iso(new Date());
+const SP={stem_cm:3,unit:3,qty:3,min_qty:3,price:3,received:3,expires:3};
+let S={clients:[],orders:[],stock:[],stock_log:[],expenses:[]},tab='orders',flt='всі',q='',cur=new Date(),selDay=iso(new Date()),authed=false;
 const num=v=>+v||0;
-async function load(){for(const t in S){const r=await sb.from(t).select('*');S[t]=r.data||[]}render()}
-async function init(){if(URL_.startsWith('ВСТАВ')||KEY.startsWith('ВСТАВ')){$('#app').innerHTML='<div class=c>Встав Supabase URL і ключ у index.html (рядок const URL_=...)</div>';return}const{data}=await sb.auth.getSession();data.session?load():login()}
-function login(m=''){$('#app').innerHTML=`<h1>🌿 Флора CRM</h1><div class="sub">Вхід</div><div class="c"><label>Email</label><input id=em type=email><label>Пароль</label><input id=pw type=password><button class=btn onclick=doLogin()>Увійти</button><div class=m>${m}</div></div>`}
-async function doLogin(){const{error}=await sb.auth.signInWithPassword({email:$('#em').value,password:$('#pw').value});error?login('Невірний email чи пароль'):load()}
+async function load(){for(const t in S){const r=await sb.from(t).select('*');S[t]=r.data||[]}authed=true;render()}
+async function init(){if(URL_.startsWith('ВСТАВ')||KEY.startsWith('ВСТАВ')){$('#app').innerHTML='<div class=c>Встав Supabase URL і ключ у index.html</div>';return}const{data}=await sb.auth.getSession();data.session?load():login()}
+function setLang(l){lang=l;try{localStorage.setItem('lang',l)}catch(_){}document.documentElement.lang=l;authed?render():login()}
+function head(){return `<div class=row><h1>🌿 Flory</h1><div class=lg><button class="${lang=='uk'?'on':''}" onclick="setLang('uk')">UA</button><button class="${lang=='pl'?'on':''}" onclick="setLang('pl')">PL</button></div></div>`}
+function login(m=''){authed=false;$('#app').innerHTML=head()+`<div class=sub>${T('Вхід')}</div><div class="c"><label>Email</label><input id=em type=email><label>${T('Пароль')}</label><input id=pw type=password><button class=btn onclick=doLogin()>${T('Увійти')}</button><div class=m>${m}</div></div>`}
+async function doLogin(){const{error}=await sb.auth.signInWithPassword({email:$('#em').value,password:$('#pw').value});error?login(T('Невірний email чи пароль')):load()}
 const cname=id=>(S.clients.find(c=>c.id==id)||{}).name||'—';
 function render(f){
 const tabs=[['orders','💐','Замовлення'],['cal','📅','Календар'],['clients','👩','Клієнти'],['stock','📦','Склад'],['fin','💰','Фінанси']];
-let h=`<h1>🌿 Флора CRM</h1><div class=sub>помічник флориста · <a href=# onclick="sb.auth.signOut().then(()=>login())">вийти</a></div>`;
+let h=head()+`<div class=sub>${T('помічник флориста')} · <a href=# onclick="sb.auth.signOut().then(()=>login())">${T('вийти')}</a></div>`;
 h+=({orders:vOrders,cal:vCal,clients:vClients,stock:vStock,fin:vFin})[tab]();
-h+=`<nav>${tabs.map(t=>`<button class="${tab==t[0]?'on':''}" onclick="tab='${t[0]}';q='';flt='всі';render()"><b>${t[1]}</b>${t[2]}</button>`).join('')}</nav>`;
+h+=`<nav>${tabs.map(t=>`<button class="${tab==t[0]?'on':''}" onclick="tab='${t[0]}';q='';flt='всі';render()"><b>${t[1]}</b>${T(t[2])}</button>`).join('')}</nav>`;
 $('#app').innerHTML=h;if(f){const i=$('#qs');if(i){i.focus();i.setSelectionRange(1e4,1e4)}}}
-function topBar(addBtn){return `<div class=row><input id=qs placeholder="🔍 Пошук…" value="${e(q)}" oninput="q=this.value;render(true)" style="margin:0"><button class=btn onclick="${addBtn}">+ Нове</button></div>`}
+function topBar(addBtn){return `<div class=row><input id=qs placeholder="${T('🔍 Пошук…')}" value="${e(q)}" oninput="q=this.value;render(true)" style="margin:0"><button class=btn onclick="${addBtn}">${T('+ Нове')}</button></div>`}
 function vOrders(){
 const l=S.orders.filter(o=>(flt=='всі'||o.status==flt)&&(cname(o.client_id)+o.address+o.num).toLowerCase().includes(q.toLowerCase())).sort((a,b)=>(b.d||'').localeCompare(a.d||''));
-return topBar("edit('orders')")+`<div class=chips>${['всі',...ST].map(s=>`<span class="chip ${flt==s?'on':''}" onclick="flt='${s}';render()">${s}</span>`).join('')}</div>`+(l.map(oCard).join('')||'<div class=m>Замовлень немає</div>')}
+return topBar("edit('orders')")+`<div class=chips>${['всі',...ST].map(s=>`<span class="chip ${flt==s?'on':''}" onclick="flt='${s}';render()">${T(s)}</span>`).join('')}</div>`+(l.map(oCard).join('')||`<div class=m>${T('Замовлень немає')}</div>`)}
 function oCard(o){const debt=num(o.total)+num(o.delivery_cost)-num(o.paid);
-return `<div class=c><div class=row><b>№${o.num} · ${e(cname(o.client_id))}</b><span class=tag>${o.status}</span></div>
+return `<div class=c><div class=row><b>№${o.num} · ${e(cname(o.client_id))}</b><span class=tag>${T(o.status)}</span></div>
 <div class=m>📅 ${o.d||'—'} ${o.t_from||''}${o.t_to?'–'+o.t_to:''} · 📍 ${e(o.address)}</div><div class=m>💐 ${e(o.items)}</div>
-<div class=row><span>${money(num(o.total)+num(o.delivery_cost))} <span class=tag>${o.pay_status}</span></span>${debt>0&&o.pay_status!='оплачено'?'<span class=m>борг '+money(debt)+'</span>':''}</div>
-<div class=row style="margin-top:8px;justify-content:flex-start"><button class="btn s" onclick="edit('orders','${o.id}')">Ред.</button><button class="btn s" onclick="copyOrder('${o.id}')">Копіювати</button><button class="btn s d" onclick="del('orders','${o.id}')">✕</button></div></div>`}
+<div class=row><span>${money(num(o.total)+num(o.delivery_cost))} <span class=tag>${T(o.pay_status)}</span></span>${debt>0&&o.pay_status!='оплачено'?'<span class=m>'+T('борг')+' '+money(debt)+'</span>':''}</div>
+<div class=row style="margin-top:8px;justify-content:flex-start"><button class="btn s" onclick="edit('orders','${o.id}')">${T('Ред.')}</button><button class="btn s" onclick="copyOrder('${o.id}')">${T('Копіювати')}</button><button class="btn s d" onclick="del('orders','${o.id}')">✕</button></div></div>`}
 function vCal(){
 const y=cur.getFullYear(),m=cur.getMonth(),first=(new Date(y,m,1).getDay()+6)%7,n=new Date(y,m+1,0).getDate(),today=iso(new Date());
 let cells='<div></div>'.repeat(first);
@@ -61,67 +91,72 @@ for(let i=1;i<=n;i++){const d=`${y}-${String(m+1).padStart(2,'0')}-${String(i).p
 cells+=`<div class="day ${d==today?'t':''} ${d==selDay?'sel':''}" onclick="selDay='${d}';render()">${i}${c?'<i>●'+c+'</i>':''}</div>`}
 const day=S.orders.filter(o=>o.d==selDay).sort((a,b)=>(a.t_from||'').localeCompare(b.t_from||''));
 const up=S.orders.filter(o=>o.d>=today&&!['доставлене','скасоване'].includes(o.status)).sort((a,b)=>a.d.localeCompare(b.d)).slice(0,5);
-return `<div class="c row"><button class="btn s" onclick="cur=new Date(${y},${m-1},1);render()">‹</button><b>${cur.toLocaleDateString('uk',{month:'long',year:'numeric'})}</b><button class="btn s" onclick="cur=new Date(${y},${m+1},1);render()">›</button></div>
-<div class=grid>${['Пн','Вт','Ср','Чт','Пт','Сб','Нд'].map(x=>`<div class=m>${x}</div>`).join('')}${cells}</div>
-<h3>${selDay}</h3>${day.map(oCard).join('')||'<div class=m>Доставок немає</div>'}<h3>Найближчі доставки</h3>${up.map(oCard).join('')||'<div class=m>Немає</div>'}`}
+return `<div class="c row"><button class="btn s" onclick="cur=new Date(${y},${m-1},1);render()">‹</button><b>${cur.toLocaleDateString(lang,{month:'long',year:'numeric'})}</b><button class="btn s" onclick="cur=new Date(${y},${m+1},1);render()">›</button></div>
+<div class=grid>${['Пн','Вт','Ср','Чт','Пт','Сб','Нд'].map(x=>`<div class=m>${T(x)}</div>`).join('')}${cells}</div>
+<h3>${selDay}</h3>${day.map(oCard).join('')||`<div class=m>${T('Доставок немає')}</div>`}<h3>${T('Найближчі доставки')}</h3>${up.map(oCard).join('')||`<div class=m>${T('Немає')}</div>`}`}
 function bdays(){const t=new Date(),out=[];
-S.clients.forEach(c=>(c.dates||'').split('\n').forEach(line=>{const m=line.match(/(\d{1,2})[.\/](\d{1,2})/);if(!m)return;let d=new Date(t.getFullYear(),m[2]-1,m[1]);if(d<new Date(t.getFullYear(),t.getMonth(),t.getDate()))d.setFullYear(d.getFullYear()+1);const diff=Math.round((d-t)/864e5);if(diff<=7)out.push(`🎂 ${e(c.name)}: ${e(line.trim())} (${diff<=0?'сьогодні':'через '+diff+' дн.'})`)}));return out}
+S.clients.forEach(c=>(c.dates||'').split('\n').forEach(line=>{const m=line.match(/(\d{1,2})[.\/](\d{1,2})/);if(!m)return;let d=new Date(t.getFullYear(),m[2]-1,m[1]);if(d<new Date(t.getFullYear(),t.getMonth(),t.getDate()))d.setFullYear(d.getFullYear()+1);const diff=Math.round((d-t)/864e5);if(diff<=7)out.push(`🎂 ${e(c.name)}: ${e(line.trim())} (${diff<=0?T('сьогодні'):T('через')+' '+diff+' '+T('дн.')})`)}));return out}
 function vClients(){
 const l=S.clients.filter(c=>(c.name+c.phone+c.instagram).toLowerCase().includes(q.toLowerCase()));
 const b=bdays();
 return topBar("edit('clients')")+(b.length?`<div class="c warn">${b.map(x=>`<div>${x}</div>`).join('')}</div>`:'')+l.map(c=>{
 const os=S.orders.filter(o=>o.client_id==c.id),sum=os.filter(o=>o.status!='скасоване').reduce((s,o)=>s+num(o.total),0),ad=[...new Set(os.map(o=>o.address).filter(Boolean))];
-return `<div class=c><div class=row><b>${e(c.name)}</b><span class=tag>${e(c.source||'')}</span></div><div class=m>📞 ${e(c.phone)} · 📷 ${e(c.instagram)}</div>
-<div class=m>Замовлень: ${os.length} · Сума покупок: ${money(sum)}</div>${ad.length?`<div class=m>📍 ${ad.map(e).join(' | ')}</div>`:''}${c.dates?`<div class=m>📆 ${e(c.dates).replace(/\n/g,'; ')}</div>`:''}
-<div class=row style="margin-top:8px;justify-content:flex-start"><button class="btn s" onclick="edit('clients','${c.id}')">Ред.</button><button class="btn s" onclick="newFor('${c.id}')">+ Замовлення</button><button class="btn s" onclick="repeat('${c.id}')">Повторити останнє</button><button class="btn s d" onclick="del('clients','${c.id}')">✕</button></div></div>`}).join('')}
+return `<div class=c><div class=row><b>${e(c.name)}</b><span class=tag>${T(c.source||'')}</span></div><div class=m>📞 ${e(c.phone)} · 📷 ${e(c.instagram)}</div>
+<div class=m>${T('Замовлень')}: ${os.length} · ${T('Сума покупок')}: ${money(sum)}</div>${ad.length?`<div class=m>📍 ${ad.map(e).join(' | ')}</div>`:''}${c.dates?`<div class=m>📆 ${e(c.dates).replace(/\n/g,'; ')}</div>`:''}
+<div class=row style="margin-top:8px;justify-content:flex-start;flex-wrap:wrap"><button class="btn s" onclick="edit('clients','${c.id}')">${T('Ред.')}</button><button class="btn s" onclick="newFor('${c.id}')">${T('+ Замовлення')}</button><button class="btn s" onclick="repeat('${c.id}')">${T('Повторити останнє')}</button><button class="btn s d" onclick="del('clients','${c.id}')">✕</button></div></div>`}).join('')}
 function vStock(){
 const today=iso(new Date()),in3=iso(new Date(Date.now()+3*864e5));
 const low=S.stock.filter(s=>num(s.qty)<=num(s.min_qty)),first=S.stock.filter(s=>s.expires&&s.expires<=in3&&num(s.qty)>0).sort((a,b)=>a.expires.localeCompare(b.expires));
 const l=S.stock.filter(s=>(s.name+s.variety+s.color+s.category).toLowerCase().includes(q.toLowerCase()));
-return topBar("edit('stock')")+(low.length?`<div class="c warn"><b>⚠️ Потрібна закупівля</b>${low.map(s=>`<div class=m>${e(s.name)} ${e(s.variety)} — ${s.qty} ${e(s.unit)} (мін. ${s.min_qty})</div>`).join('')}</div>`:'')
-+(first.length?`<div class="c warn"><b>🥀 Використати першочергово</b>${first.map(s=>`<div class=m>${e(s.name)} ${e(s.variety)} — до ${s.expires}${s.expires<today?' (прострочено)':''}</div>`).join('')}</div>`:'')
-+l.map(s=>`<div class=c><div class=row><b>${e(s.name)} ${e(s.variety)} ${e(s.color)}${s.stem_cm?' · '+s.stem_cm+'см':''}</b><span class=tag>${e(s.category)}</span></div>
-<div class=m>Залишок: <b>${s.qty} ${e(s.unit)}</b> · ${money(s.price)}/од. · отримано ${s.received||'—'} · свіжі до ${s.expires||'—'}</div>
-<div class=row style="margin-top:8px;justify-content:flex-start"><button class="btn s" onclick="move('${s.id}','надходження')">+ Надходження</button><button class="btn s" onclick="move('${s.id}','пошкодження')">Пошкодження</button><button class="btn s" onclick="move('${s.id}','списання')">Списання</button><button class="btn s" onclick="move('${s.id}','інвентаризація')">Інвентар.</button><button class="btn s" onclick="edit('stock','${s.id}')">Ред.</button></div></div>`).join('')}
+return topBar("edit('stock')")+(low.length?`<div class="c warn"><b>${T('⚠️ Потрібна закупівля')}</b>${low.map(s=>`<div class=m>${e(s.name)} ${e(s.variety)} — ${s.qty} ${T(s.unit)} (${T('мін.')} ${s.min_qty})</div>`).join('')}</div>`:'')
++(first.length?`<div class="c warn"><b>${T('🥀 Використати першочергово')}</b>${first.map(s=>`<div class=m>${e(s.name)} ${e(s.variety)} — ${T('до')} ${s.expires}${s.expires<today?' '+T('(прострочено)'):''}</div>`).join('')}</div>`:'')
++l.map(s=>`<div class=c><div class=row><b>${e(s.name)} ${e(s.variety)} ${e(s.color)}${s.stem_cm?' · '+s.stem_cm+'cm':''}</b><span class=tag>${T(s.category)}</span></div>
+<div class=m>${T('Залишок')}: <b>${s.qty} ${T(s.unit)}</b> · ${money(s.price)}/${T('од.')} · ${T('отримано')} ${s.received||'—'} · ${T('свіжі до')} ${s.expires||'—'}</div>
+<div class=row style="margin-top:8px;justify-content:flex-start;flex-wrap:wrap"><button class="btn s" onclick="move('${s.id}','надходження')">${T('+ Надходження')}</button><button class="btn s" onclick="move('${s.id}','пошкодження')">${T('Пошкодження')}</button><button class="btn s" onclick="move('${s.id}','списання')">${T('Списання')}</button><button class="btn s" onclick="move('${s.id}','інвентаризація')">${T('Інвентар.')}</button><button class="btn s" onclick="edit('stock','${s.id}')">${T('Ред.')}</button></div></div>`).join('')}
 function vFin(){
 const ok=S.orders.filter(o=>o.status!='скасоване'),done=S.orders.filter(o=>o.status=='доставлене');
-const inc=done.reduce((s,o)=>s+num(o.total)+num(o.delivery_cost),0),cost=done.reduce((s,o)=>s+num(o.cost),0),dl=done.reduce((s,o)=>s+num(o.delivery_cost),0);
+const inc=done.reduce((s,o)=>s+num(o.total)+num(o.delivery_cost),0);
 const exp=S.expenses.reduce((s,x)=>s+num(x.amount),0),loss=S.stock_log.filter(x=>x.kind=='пошкодження'||x.kind=='списання').reduce((s,x)=>s+num(x.amount),0);
 const debt=ok.reduce((s,o)=>s+Math.max(0,num(o.total)+num(o.delivery_cost)-num(o.paid)),0),gross=done.reduce((s,o)=>s+num(o.total)-num(o.cost),0);
-return `<div class=kp><div class=c>💸 Дохід<b>${money(inc)}</b><span class=m>${done.length} доставлених</span></div><div class=c>✨ Середній чек<b>${money(done.length?inc/done.length:0)}</b></div>
-<div class=c>🌸 Валовий прибуток<b>${money(gross)}</b><span class=m>сума − собівартість</span></div><div class=c>🧾 Чистий<b>${money(gross-exp-loss)}</b><span class=m>після витрат і втрат</span></div>
-<div class=c>🥀 Втрати<b>${money(loss)}</b></div><div class=c>⏳ Не сплачено<b>${money(debt)}</b></div></div>
-<div class=row><h3>Витрати</h3><button class=btn onclick="edit('expenses')">+ Витрата</button></div>
-${S.expenses.sort((a,b)=>(b.d||'').localeCompare(a.d||'')).map(x=>`<div class="c row"><span>${x.d} · ${e(x.kind)} <span class=m>${e(x.note)}</span></span><span>${money(x.amount)} <button class="btn s d" onclick="del('expenses','${x.id}')">✕</button></span></div>`).join('')||'<div class=m>Витрат ще немає</div>'}`}
+return `<div class=kp><div class=c>${T('💸 Дохід')}<b>${money(inc)}</b><span class=m>${done.length} ${T('доставлених')}</span></div><div class=c>${T('✨ Середній чек')}<b>${money(done.length?inc/done.length:0)}</b></div>
+<div class=c>${T('🌸 Валовий прибуток')}<b>${money(gross)}</b><span class=m>${T('сума − собівартість')}</span></div><div class=c>${T('🧾 Чистий')}<b>${money(gross-exp-loss)}</b><span class=m>${T('після витрат і втрат')}</span></div>
+<div class=c>${T('🥀 Втрати')}<b>${money(loss)}</b></div><div class=c>${T('⏳ Не сплачено')}<b>${money(debt)}</b></div></div>
+<div class=row><h3>${T('Витрати')}</h3><button class=btn onclick="edit('expenses')">${T('+ Витрата')}</button></div>
+${S.expenses.sort((a,b)=>(b.d||'').localeCompare(a.d||'')).map(x=>`<div class="c row"><span>${x.d} · ${T(x.kind)} <span class=m>${e(x.note)}</span></span><span>${money(x.amount)} <button class="btn s d" onclick="del('expenses','${x.id}')">✕</button></span></div>`).join('')||`<div class=m>${T('Витрат ще немає')}</div>`}`}
 /* форма */
 function edit(t,id,pre){const r=id?S[t].find(x=>x.id==id):(pre||{});
 const f=F[t].map(([k,l,ty])=>{let v=r[k]??'';ty=ty||'text';let i;
-if(ty=='client')i=`<select id=f_${k}><option value="">—</option>${S.clients.map(c=>`<option value="${c.id}" ${c.id==v?'selected':''}>${e(c.name)}</option>`).join('')}</select>`;
-else if(ty.startsWith('sel:'))i=`<select id=f_${k}>${ty.slice(4).split(',').map(o=>`<option ${o==v?'selected':''}>${o}</option>`).join('')}</select>`;
+if(ty=='client')i=`<input id=cs value="${e(v?cname(v):'')}" placeholder="${T("🔍 Ім'я чи телефон клієнта")}" autocomplete=off oninput="fcl(this.value,1)" onfocus="fcl(this.value)"><input type=hidden id=f_client_id value="${e(v)}"><div id=cl></div>`;
+else if(ty.startsWith('sel:'))i=`<select id=f_${k}>${ty.slice(4).split(',').map(o=>`<option value="${o}" ${o==v?'selected':''}>${T(o)}</option>`).join('')}</select>`;
 else if(ty=='area')i=`<textarea id=f_${k} rows=2>${e(v)}</textarea>`;
 else i=`<input id=f_${k} type="${ty}" value="${e(v)}" ${k=='address'?'list=adl':''}>`;
-return `<label>${l}</label>${i}`}).join('');
-$('#mb').innerHTML=`<b>${id?'Редагувати':'Нове'}</b><br>${f}<datalist id=adl>${[...new Set(S.orders.map(o=>o.address).filter(Boolean))].map(a=>`<option value="${e(a)}">`).join('')}</datalist><div class=row><button class=btn onclick="save('${t}','${id||''}')">Зберегти</button><button class="btn s" onclick="closeM()">Скасувати</button></div>`;$('#modal').style.display='block'}
+const sp=(t=='orders'&&['d','t_from','t_to'].includes(k))?2:(SP[k]||((ty=='number'||ty=='date')?3:6));
+return `<div style="grid-column:span ${sp}"><label>${T(l)}</label>${i}</div>`}).join('');
+$('#mb').innerHTML=`<b>${T(id?'Редагувати':'Нове')}</b><div class=fg>${f}</div><datalist id=adl>${[...new Set(S.orders.map(o=>o.address).filter(Boolean))].map(a=>`<option value="${e(a)}">`).join('')}</datalist><div class=row><button class=btn onclick="save('${t}','${id||''}')">${T('Зберегти')}</button><button class="btn s" onclick="closeM()">${T('Скасувати')}</button></div>`;$('#modal').style.display='block'}
+function fcl(v,clear){if(clear)$('#f_client_id').value='';const s=v.toLowerCase();
+const l=S.clients.filter(c=>(c.name+' '+(c.phone||'')+' '+(c.instagram||'')).toLowerCase().includes(s)).slice(0,8);
+$('#cl').innerHTML=l.length?l.map(c=>`<div class=opt onclick="pick('${c.id}')">${e(c.name)} <span class=m>${e(c.phone||'')}</span></div>`).join(''):`<div class=m>${T('Нічого не знайдено')}</div>`}
+function pick(id){const c=S.clients.find(x=>x.id==id);$('#f_client_id').value=id;$('#cs').value=c.name;$('#cl').innerHTML='';const a=$('#f_address');if(a&&!a.value)a.value=c.address||''}
 function closeM(){$('#modal').style.display='none'}
 async function save(t,id){const o={};F[t].forEach(([k,,ty])=>{let v=$('#f_'+k).value;o[k]=v===''?null:(ty=='number'?+v:v)});
-if(t=='orders'&&!o.client_id){alert('Обери клієнта');return}
+if(t=='orders'&&!o.client_id){alert(T('Обери клієнта'));return}
 let r=id?await sb.from(t).update(o).eq('id',id).select().single():await sb.from(t).insert(o).select().single();
 if(r.error){alert(r.error.message);return}
 if(t=='orders')await autoWriteOff(r.data);
 closeM();load()}
-async function del(t,id){if(confirm('Видалити?')){await sb.from(t).delete().eq('id',id);load()}}
+async function del(t,id){if(confirm(T('Видалити?'))){await sb.from(t).delete().eq('id',id);load()}}
 /* замовлення */
 function copyOrder(id){const o=S.orders.find(x=>x.id==id),c={...o};['id','num','created_at','written_off','cost','paid'].forEach(k=>delete c[k]);c.status='нове';c.pay_status='не оплачено';c.d=null;edit('orders',null,c)}
 function newFor(cid){edit('orders',null,{client_id:cid,status:'нове',address:(S.clients.find(c=>c.id==cid)||{}).address})}
-function repeat(cid){const l=S.orders.filter(o=>o.client_id==cid).sort((a,b)=>b.created_at.localeCompare(a.created_at));l[0]?copyOrder(l[0].id):alert('У клієнта ще немає замовлень')}
+function repeat(cid){const l=S.orders.filter(o=>o.client_id==cid).sort((a,b)=>b.created_at.localeCompare(a.created_at));l[0]?copyOrder(l[0].id):alert(T('У клієнта ще немає замовлень'))}
 /* автосписання */
 async function autoWriteOff(o){if(o.status!='доставлене'||o.written_off)return;let cost=0;
 for(const p of (o.items||'').split(',')){const [n,q]=p.split(':');if(!n||!q)continue;const s=S.stock.filter(x=>x.name.toLowerCase()==n.trim().toLowerCase()).sort((a,b)=>(a.expires||'9').localeCompare(b.expires||'9'))[0];if(!s)continue;
 const qty=+q,amt=qty*num(s.price);cost+=amt;await sb.from('stock').update({qty:num(s.qty)-qty}).eq('id',s.id);await sb.from('stock_log').insert({stock_id:s.id,kind:'замовлення',qty,amount:amt,note:'№'+o.num});s.qty=num(s.qty)-qty}
 await sb.from('orders').update({written_off:true,cost}).eq('id',o.id)}
 /* склад */
-async function move(id,kind){const s=S.stock.find(x=>x.id==id);const v=prompt(kind=='інвентаризація'?'Фактичний залишок:':'Кількість ('+s.unit+'):');if(v===null||v==='')return;const n=+v;let qty=num(s.qty),amt=0,logq=n;
-if(kind=='надходження'){qty+=n;const p=prompt('Закупівельна ціна за од. (залиш порожнім — без змін):');const up={qty,received:iso(new Date())};if(p)up.price=+p;const d=prompt('Свіжі до (РРРР-ММ-ДД, можна пропустити):');if(d)up.expires=d;await sb.from('stock').update(up).eq('id',id)}
+async function move(id,kind){const s=S.stock.find(x=>x.id==id);const v=prompt(kind=='інвентаризація'?T('Фактичний залишок:'):T('Кількість')+' ('+T(s.unit)+'):');if(v===null||v==='')return;const n=+v;let qty=num(s.qty),amt=0,logq=n;
+if(kind=='надходження'){qty+=n;const p=prompt(T('Закупівельна ціна за од. (залиш порожнім — без змін):'));const up={qty,received:iso(new Date())};if(p)up.price=+p;const d=prompt(T('Свіжі до (РРРР-ММ-ДД, можна пропустити):'));if(d)up.expires=d;await sb.from('stock').update(up).eq('id',id)}
 else if(kind=='інвентаризація'){logq=n-qty;amt=logq<0?-logq*num(s.price):0;await sb.from('stock').update({qty:n}).eq('id',id)}
 else{qty-=n;amt=n*num(s.price);await sb.from('stock').update({qty}).eq('id',id)}
 await sb.from('stock_log').insert({stock_id:id,kind,qty:logq,amount:amt});load()}
